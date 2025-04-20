@@ -1,0 +1,19 @@
+version: '3'
+
+tasks:
+  build:
+    cmds:
+      - go build .
+
+  migrate:create:
+    cmds:
+      - |
+        if [ -z "{{.CLI_ARGS}}" ]; then
+          echo "A migration name is required. Example: task migrate:create -- migrationname"
+          exit 1
+        fi
+        goose sqlite3 ./wwenet.db create {{.CLI_ARGS}} sql -dir migrations
+
+  sqlgen:
+    cmds:
+      - sqlc generate

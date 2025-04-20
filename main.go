@@ -1,0 +1,95 @@
+package main
+
+import (
+	"context"
+	"database/sql"
+	"log"
+	"os"
+
+	"github.com/knadh/koanf/parsers/toml/v2"
+	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf/v2"
+	"github.com/pressly/goose/v3"
+	"github.com/urfave/cli/v3"
+
+	"github.com/marcus-crane/wwenet/cmd"
+	"github.com/marcus-crane/wwenet/config"
+	"github.com/marcus-crane/wwenet/migrations"
+	"github.com/marcus-crane/wwenet/storage"
+)
+
+var (
+	cfg   config.Config
+	store *storage.Queries
+)
+
+func main() {
+	wwecmd := &cli.Command{
+		Name:  "wwenet",
+		Usage: "enjoy your favourite wwe network matches while offline",
+		Before: func(ctx context.Context, ucmd *cli.Command) (context.Context, error) {
+			if err := loadConfiguration(); err != nil {
+				return ctx, err
+			}
+
+			return ctx, runMigrations()
+		},
+		Commands: []*cli.Command{
+			{
+				Name:  "video",
+				Usage: "retrieve a single video",
+				Action: func(ctx context.Context, ucmd *cli.Command) error {
+					return cmd.Video(ctx, ucmd, cfg, store)
+				},
+			},
+			{
+				Name:  "season",
+				Usage: "retrieve an entire season of videos",
+				Action: func(ctx context.Context, ucmd *cli.Command) error {
+					return cmd.Season(ctx, ucmd, cfg, store)
+				},
+			},
+		},
+	}
+
+	if err := wwecmd.Run(context.Background(), os.Args); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func loadConfiguration() error {
+	k := koanf.New(".")
+	if err := k.Load(file.Provider("config.toml"), toml.Parser()); err != nil {
+		return err
+	}
+
+	var loadedCfg config.Config
+	if err := k.Unmarshal("", &loadedCfg); err != nil {
+		return err
+	}
+	cfg = loadedCfg
+	return nil
+}
+
+func runMigrations() error {
+	db, err := sql.Open("sqlite", "wwenet.db")
+	if err != nil {
+		return err
+	}
+
+	goose.SetBaseFS(migrations.GetMigrations())
+
+	if err := goose.SetDialect(string(goose.DialectSQLite3)); err != nil {
+		return err
+	}
+
+	goose.SetLogger(goose.NopLogger())
+
+	if err := goose.Up(db, "."); err != nil {
+		return err
+	}
+
+	store = storage.New(db)
+
+	return nil
+}
