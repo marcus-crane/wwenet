@@ -48,7 +48,7 @@ func cacheSeason(ctx context.Context, seasonID int64, cfg config.Config, db *sto
 		EpisodeCount:    sqlNullInt64(int64(season.EpisodeCount)),
 	}
 
-	cachedSeason, err := db.CreateSeason(ctx, params)
+	_, err = db.CreateSeason(ctx, params)
 	if err != nil {
 		return fmt.Errorf("failed to cache season: %w", err)
 	}
@@ -59,7 +59,7 @@ func cacheSeason(ctx context.Context, seasonID int64, cfg config.Config, db *sto
 		}
 	}
 
-	fmt.Printf("Cached %s Season %d\n", cachedSeason.Title, cachedSeason.SeasonNumber.Int64)
+	fmt.Printf("Cached %s Season %d\n", season.Title, season.SeasonNumber)
 
 	return nil
 }

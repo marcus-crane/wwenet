@@ -107,7 +107,7 @@ func (c *Client) getSeasonPartial(ctx context.Context, seasonID int64, lastSeen 
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
-		return &networkentities.Season{}, fmt.Errorf("failed to read episode info. got status code %d", resp.StatusCode)
+		return &networkentities.Season{}, fmt.Errorf("failed to read season info. got status code %d", resp.StatusCode)
 	}
 
 	var season networkentities.Season
@@ -116,4 +116,60 @@ func (c *Client) getSeasonPartial(ctx context.Context, seasonID int64, lastSeen 
 	}
 
 	return &season, nil
+}
+
+func (c *Client) GetSeries(ctx context.Context, seriesID int64) (*networkentities.Series, error) {
+	baseSeries, err := c.getSeriesPartial(ctx, seriesID, 0)
+	if err != nil {
+		return &networkentities.Series{}, fmt.Errorf("failed to fetch initial payload for season ID %d: %w", seriesID, err)
+	}
+	pagesRemaining := baseSeries.Paging.MoreDataAvailable
+	lastSeen := int64(baseSeries.Paging.LastSeen)
+
+	for pagesRemaining {
+		nextSeasonPartial, err := c.getSeriesPartial(ctx, seriesID, lastSeen)
+		if err != nil {
+			return &networkentities.Series{}, fmt.Errorf("failed to fetch payload for season %s offset %d: %w", baseSeries.Title, lastSeen, err)
+		}
+		baseSeries.Seasons = append(baseSeries.Seasons, nextSeasonPartial.Seasons...)
+		pagesRemaining = nextSeasonPartial.Paging.MoreDataAvailable
+		lastSeen = int64(nextSeasonPartial.Paging.LastSeen)
+	}
+
+	return baseSeries, nil
+}
+
+func (c *Client) getSeriesPartial(ctx context.Context, seriesID int64, lastSeen int64) (*networkentities.Series, error) {
+	url := fmt.Sprintf("%s/v4/series/%d", c.baseURL, seriesID)
+	if lastSeen > 0 {
+		url += fmt.Sprintf("?lastSeen=%d", lastSeen)
+	}
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.token))
+	req.Header.Add("Realm", "dce.wwe")
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("x-api-key", c.config.Network.XApiKey)
+	req.Header.Add("x-app-var", c.config.Network.XAppVar)
+	req.Header.Add("User-Agent", c.config.Network.UserAgent)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		return &networkentities.Series{}, fmt.Errorf("failed to read series info. got status code %d", resp.StatusCode)
+	}
+
+	var series networkentities.Series
+	if err := json.NewDecoder(resp.Body).Decode(&series); err != nil {
+		return nil, fmt.Errorf("failed to decode series: %w", err)
+	}
+
+	return &series, nil
 }
