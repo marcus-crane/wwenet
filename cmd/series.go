@@ -13,9 +13,7 @@ import (
 )
 
 func CacheSeries(ctx context.Context, cmd *cli.Command, cfg config.Config, db *storage.Queries) error {
-	seriesID := int64(cmd.Int("id"))
-
-	return cacheSeries(ctx, seriesID, cfg, db)
+	return cacheSeries(ctx, int64(cmd.Int("id")), cfg, db)
 }
 
 func cacheSeries(ctx context.Context, seriesID int64, cfg config.Config, db *storage.Queries) error {

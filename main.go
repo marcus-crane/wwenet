@@ -98,13 +98,6 @@ func main() {
 				},
 			},
 			{
-				Name:  "video",
-				Usage: "retrieve a single video",
-				Action: func(ctx context.Context, ucmd *cli.Command) error {
-					return cmd.Video(ctx, ucmd, cfg, store)
-				},
-			},
-			{
 				Name:  "config",
 				Usage: "output config",
 				Action: func(ctx context.Context, ucmd *cli.Command) error {

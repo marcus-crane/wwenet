@@ -14,9 +14,7 @@ import (
 )
 
 func CacheEpisode(ctx context.Context, cmd *cli.Command, cfg config.Config, db *storage.Queries) error {
-	episodeID := int64(cmd.Int("id"))
-
-	return cacheEpisode(ctx, episodeID, cfg, db)
+	return cacheEpisode(ctx, int64(cmd.Int("id")), cfg, db)
 }
 
 func cacheEpisode(ctx context.Context, episodeID int64, cfg config.Config, db *storage.Queries) error {

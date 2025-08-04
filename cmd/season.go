@@ -13,9 +13,7 @@ import (
 )
 
 func CacheSeason(ctx context.Context, cmd *cli.Command, cfg config.Config, db *storage.Queries) error {
-	seasonID := int64(cmd.Int("id"))
-
-	return cacheSeason(ctx, seasonID, cfg, db)
+	return cacheSeason(ctx, int64(cmd.Int("id")), cfg, db)
 }
 
 func cacheSeason(ctx context.Context, seasonID int64, cfg config.Config, db *storage.Queries) error {
