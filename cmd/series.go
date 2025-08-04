@@ -9,6 +9,6 @@ import (
 	"github.com/marcus-crane/wwenet/storage"
 )
 
-func CacheSeason(ctx context.Context, cmd *cli.Command, cfg config.Config, db *storage.Queries) error {
+func CacheSeries(ctx context.Context, cmd *cli.Command, cfg config.Config, db *storage.Queries) error {
 	return nil
 }

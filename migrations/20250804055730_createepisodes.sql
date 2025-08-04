@@ -1,20 +1,22 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE seasons (
+CREATE TABLE episodes (
     id INTEGER PRIMARY KEY,
     title TEXT NOT NULL,
     description TEXT,
-    long_description TEXT,
-    small_cover_url TEXT,
     cover_url TEXT,
-    title_url TEXT,
+    thumbnail_url TEXT,
     poster_url TEXT,
-    season_number INTEGER,
-    episode_count INTEGER
+    duration INT,
+    external_asset_id TEXT,
+    rating TEXT,
+    descriptors TEXT,
+    season_number INT,
+    episode_number INT
 );
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE seasons;
+DROP TABLE episodes;
 -- +goose StatementEnd

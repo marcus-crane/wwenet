@@ -4,12 +4,58 @@
 
 package storage
 
+import (
+	"database/sql"
+)
+
+type Download struct {
+	EpisodeID    sql.NullInt64
+	FilePath     sql.NullString
+	DownloadedAt sql.NullInt64
+}
+
+type Episode struct {
+	ID              int64
+	Title           string
+	Description     sql.NullString
+	CoverUrl        sql.NullString
+	ThumbnailUrl    sql.NullString
+	PosterUrl       sql.NullString
+	Duration        sql.NullInt64
+	ExternalAssetID sql.NullString
+	Rating          sql.NullString
+	Descriptors     sql.NullString
+	SeasonNumber    sql.NullInt64
+	EpisodeNumber   sql.NullInt64
+}
+
 type Season struct {
-	ID   int64
-	Name string
+	ID              int64
+	Title           string
+	Description     sql.NullString
+	LongDescription sql.NullString
+	SmallCoverUrl   sql.NullString
+	CoverUrl        sql.NullString
+	TitleUrl        sql.NullString
+	PosterUrl       sql.NullString
+	SeasonNumber    sql.NullInt64
+	EpisodeCount    sql.NullInt64
+}
+
+type Series struct {
+	ID              int64
+	Title           string
+	Description     sql.NullString
+	LongDescription sql.NullString
+	SmallCoverUrl   sql.NullString
+	CoverUrl        sql.NullString
+	TitleUrl        sql.NullString
+	PosterUrl       sql.NullString
+	LogoUrl         sql.NullString
 }
 
 type Token struct {
-	ID    string
-	Value string
+	ID        string
+	Value     string
+	ExpiresAt sql.NullInt64
 }

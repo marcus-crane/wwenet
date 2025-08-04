@@ -26,3 +26,5 @@ go.work.sum
 
 *.db
 config.toml
+wwenet
+wwenet.db

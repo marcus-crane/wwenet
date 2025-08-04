@@ -7,50 +7,259 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 )
+
+const createDownload = `-- name: CreateDownload :one
+INSERT INTO downloads (
+    episode_id,
+    file_path,
+    downloaded_at
+) VALUES (
+    ?, ?, ?
+)
+RETURNING episode_id, file_path, downloaded_at
+`
+
+type CreateDownloadParams struct {
+	EpisodeID    sql.NullInt64
+	FilePath     sql.NullString
+	DownloadedAt sql.NullInt64
+}
+
+func (q *Queries) CreateDownload(ctx context.Context, arg CreateDownloadParams) (Download, error) {
+	row := q.db.QueryRowContext(ctx, createDownload, arg.EpisodeID, arg.FilePath, arg.DownloadedAt)
+	var i Download
+	err := row.Scan(&i.EpisodeID, &i.FilePath, &i.DownloadedAt)
+	return i, err
+}
+
+const createEpisode = `-- name: CreateEpisode :one
+INSERT INTO episodes (
+    id, 
+    title,
+    description,
+    cover_url,
+    thumbnail_url,
+    poster_url,
+    duration,
+    external_asset_id,
+    rating,
+    descriptors,
+    season_number,
+    episode_number
+) VALUES (
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+)
+RETURNING id, title, description, cover_url, thumbnail_url, poster_url, duration, external_asset_id, rating, descriptors, season_number, episode_number
+`
+
+type CreateEpisodeParams struct {
+	ID              int64
+	Title           string
+	Description     sql.NullString
+	CoverUrl        sql.NullString
+	ThumbnailUrl    sql.NullString
+	PosterUrl       sql.NullString
+	Duration        sql.NullInt64
+	ExternalAssetID sql.NullString
+	Rating          sql.NullString
+	Descriptors     sql.NullString
+	SeasonNumber    sql.NullInt64
+	EpisodeNumber   sql.NullInt64
+}
+
+func (q *Queries) CreateEpisode(ctx context.Context, arg CreateEpisodeParams) (Episode, error) {
+	row := q.db.QueryRowContext(ctx, createEpisode,
+		arg.ID,
+		arg.Title,
+		arg.Description,
+		arg.CoverUrl,
+		arg.ThumbnailUrl,
+		arg.PosterUrl,
+		arg.Duration,
+		arg.ExternalAssetID,
+		arg.Rating,
+		arg.Descriptors,
+		arg.SeasonNumber,
+		arg.EpisodeNumber,
+	)
+	var i Episode
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.CoverUrl,
+		&i.ThumbnailUrl,
+		&i.PosterUrl,
+		&i.Duration,
+		&i.ExternalAssetID,
+		&i.Rating,
+		&i.Descriptors,
+		&i.SeasonNumber,
+		&i.EpisodeNumber,
+	)
+	return i, err
+}
 
 const createSeason = `-- name: CreateSeason :one
 INSERT INTO seasons (
     id, 
-    name
+    title,
+    description,
+    long_description,
+    small_cover_url,
+    cover_url,
+    title_url,
+    poster_url,
+    season_number,
+    episode_count
 ) VALUES (
-    ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 )
-RETURNING id, name
+RETURNING id, title, description, long_description, small_cover_url, cover_url, title_url, poster_url, season_number, episode_count
 `
 
 type CreateSeasonParams struct {
-	ID   int64
-	Name string
+	ID              int64
+	Title           string
+	Description     sql.NullString
+	LongDescription sql.NullString
+	SmallCoverUrl   sql.NullString
+	CoverUrl        sql.NullString
+	TitleUrl        sql.NullString
+	PosterUrl       sql.NullString
+	SeasonNumber    sql.NullInt64
+	EpisodeCount    sql.NullInt64
 }
 
 func (q *Queries) CreateSeason(ctx context.Context, arg CreateSeasonParams) (Season, error) {
-	row := q.db.QueryRowContext(ctx, createSeason, arg.ID, arg.Name)
+	row := q.db.QueryRowContext(ctx, createSeason,
+		arg.ID,
+		arg.Title,
+		arg.Description,
+		arg.LongDescription,
+		arg.SmallCoverUrl,
+		arg.CoverUrl,
+		arg.TitleUrl,
+		arg.PosterUrl,
+		arg.SeasonNumber,
+		arg.EpisodeCount,
+	)
 	var i Season
-	err := row.Scan(&i.ID, &i.Name)
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.LongDescription,
+		&i.SmallCoverUrl,
+		&i.CoverUrl,
+		&i.TitleUrl,
+		&i.PosterUrl,
+		&i.SeasonNumber,
+		&i.EpisodeCount,
+	)
+	return i, err
+}
+
+const createSeries = `-- name: CreateSeries :one
+INSERT INTO series (
+    id,
+    title,
+    description,
+    long_description,
+    small_cover_url,
+    cover_url,
+    title_url,
+    poster_url,
+    logo_url
+) VALUES (
+    ?, ?, ?, ?, ?, ?, ?, ?, ?
+)
+RETURNING id, title, description, long_description, small_cover_url, cover_url, title_url, poster_url, logo_url
+`
+
+type CreateSeriesParams struct {
+	ID              int64
+	Title           string
+	Description     sql.NullString
+	LongDescription sql.NullString
+	SmallCoverUrl   sql.NullString
+	CoverUrl        sql.NullString
+	TitleUrl        sql.NullString
+	PosterUrl       sql.NullString
+	LogoUrl         sql.NullString
+}
+
+func (q *Queries) CreateSeries(ctx context.Context, arg CreateSeriesParams) (Series, error) {
+	row := q.db.QueryRowContext(ctx, createSeries,
+		arg.ID,
+		arg.Title,
+		arg.Description,
+		arg.LongDescription,
+		arg.SmallCoverUrl,
+		arg.CoverUrl,
+		arg.TitleUrl,
+		arg.PosterUrl,
+		arg.LogoUrl,
+	)
+	var i Series
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.LongDescription,
+		&i.SmallCoverUrl,
+		&i.CoverUrl,
+		&i.TitleUrl,
+		&i.PosterUrl,
+		&i.LogoUrl,
+	)
 	return i, err
 }
 
 const createToken = `-- name: CreateToken :one
 INSERT INTO tokens (
     id,
-    value
+    value,
+    expires_at
 ) VALUES (
-    ?, ?
+    ?, ?, ?
 )
-RETURNING id, value
+RETURNING id, value, expires_at
 `
 
 type CreateTokenParams struct {
-	ID    string
-	Value string
+	ID        string
+	Value     string
+	ExpiresAt sql.NullInt64
 }
 
 func (q *Queries) CreateToken(ctx context.Context, arg CreateTokenParams) (Token, error) {
-	row := q.db.QueryRowContext(ctx, createToken, arg.ID, arg.Value)
+	row := q.db.QueryRowContext(ctx, createToken, arg.ID, arg.Value, arg.ExpiresAt)
 	var i Token
-	err := row.Scan(&i.ID, &i.Value)
+	err := row.Scan(&i.ID, &i.Value, &i.ExpiresAt)
 	return i, err
+}
+
+const deleteDownload = `-- name: DeleteDownload :exec
+DELETE FROM downloads
+WHERE episode_id = ?
+`
+
+func (q *Queries) DeleteDownload(ctx context.Context, episodeID sql.NullInt64) error {
+	_, err := q.db.ExecContext(ctx, deleteDownload, episodeID)
+	return err
+}
+
+const deleteEpisode = `-- name: DeleteEpisode :exec
+DELETE FROM episodes
+WHERE id = ?
+`
+
+func (q *Queries) DeleteEpisode(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteEpisode, id)
+	return err
 }
 
 const deleteSeason = `-- name: DeleteSeason :exec
@@ -60,6 +269,16 @@ WHERE id = ?
 
 func (q *Queries) DeleteSeason(ctx context.Context, id int64) error {
 	_, err := q.db.ExecContext(ctx, deleteSeason, id)
+	return err
+}
+
+const deleteSeries = `-- name: DeleteSeries :exec
+DELETE FROM series
+WHERE id = ?
+`
+
+func (q *Queries) DeleteSeries(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteSeries, id)
 	return err
 }
 
@@ -73,33 +292,182 @@ func (q *Queries) DeleteToken(ctx context.Context, id string) error {
 	return err
 }
 
-const getSeason = `-- name: GetSeason :one
-SELECT id, name FROM seasons
+const getDownload = `-- name: GetDownload :one
+
+SELECT episode_id, file_path, downloaded_at FROM downloads
+WHERE episode_id = ? LIMIT 1
+`
+
+// - DOWNLOADS ---
+func (q *Queries) GetDownload(ctx context.Context, episodeID sql.NullInt64) (Download, error) {
+	row := q.db.QueryRowContext(ctx, getDownload, episodeID)
+	var i Download
+	err := row.Scan(&i.EpisodeID, &i.FilePath, &i.DownloadedAt)
+	return i, err
+}
+
+const getEpisode = `-- name: GetEpisode :one
+
+SELECT id, title, description, cover_url, thumbnail_url, poster_url, duration, external_asset_id, rating, descriptors, season_number, episode_number FROM episodes
 WHERE id = ? LIMIT 1
 `
 
+// -- EPISODES ----
+func (q *Queries) GetEpisode(ctx context.Context, id int64) (Episode, error) {
+	row := q.db.QueryRowContext(ctx, getEpisode, id)
+	var i Episode
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.CoverUrl,
+		&i.ThumbnailUrl,
+		&i.PosterUrl,
+		&i.Duration,
+		&i.ExternalAssetID,
+		&i.Rating,
+		&i.Descriptors,
+		&i.SeasonNumber,
+		&i.EpisodeNumber,
+	)
+	return i, err
+}
+
+const getSeason = `-- name: GetSeason :one
+
+SELECT id, title, description, long_description, small_cover_url, cover_url, title_url, poster_url, season_number, episode_count FROM seasons
+WHERE id = ? LIMIT 1
+`
+
+// -- SEASONS ----
 func (q *Queries) GetSeason(ctx context.Context, id int64) (Season, error) {
 	row := q.db.QueryRowContext(ctx, getSeason, id)
 	var i Season
-	err := row.Scan(&i.ID, &i.Name)
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.LongDescription,
+		&i.SmallCoverUrl,
+		&i.CoverUrl,
+		&i.TitleUrl,
+		&i.PosterUrl,
+		&i.SeasonNumber,
+		&i.EpisodeCount,
+	)
+	return i, err
+}
+
+const getSeries = `-- name: GetSeries :one
+
+SELECT id, title, description, long_description, small_cover_url, cover_url, title_url, poster_url, logo_url FROM series
+WHERE id = ? LIMIT 1
+`
+
+// -- SERIES ----
+func (q *Queries) GetSeries(ctx context.Context, id int64) (Series, error) {
+	row := q.db.QueryRowContext(ctx, getSeries, id)
+	var i Series
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.LongDescription,
+		&i.SmallCoverUrl,
+		&i.CoverUrl,
+		&i.TitleUrl,
+		&i.PosterUrl,
+		&i.LogoUrl,
+	)
 	return i, err
 }
 
 const getToken = `-- name: GetToken :one
-SELECT id, value FROM tokens
+
+SELECT id, value, expires_at FROM tokens
 WHERE id = ? LIMIT 1
 `
 
+// -- TOKENS ----
 func (q *Queries) GetToken(ctx context.Context, id string) (Token, error) {
 	row := q.db.QueryRowContext(ctx, getToken, id)
 	var i Token
-	err := row.Scan(&i.ID, &i.Value)
+	err := row.Scan(&i.ID, &i.Value, &i.ExpiresAt)
 	return i, err
 }
 
+const listDownloads = `-- name: ListDownloads :many
+SELECT episode_id, file_path, downloaded_at FROM downloads
+ORDER BY episode_id
+`
+
+func (q *Queries) ListDownloads(ctx context.Context) ([]Download, error) {
+	rows, err := q.db.QueryContext(ctx, listDownloads)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Download
+	for rows.Next() {
+		var i Download
+		if err := rows.Scan(&i.EpisodeID, &i.FilePath, &i.DownloadedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listEpisodes = `-- name: ListEpisodes :many
+SELECT id, title, description, cover_url, thumbnail_url, poster_url, duration, external_asset_id, rating, descriptors, season_number, episode_number FROM episodes
+ORDER BY title
+`
+
+func (q *Queries) ListEpisodes(ctx context.Context) ([]Episode, error) {
+	rows, err := q.db.QueryContext(ctx, listEpisodes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Episode
+	for rows.Next() {
+		var i Episode
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.CoverUrl,
+			&i.ThumbnailUrl,
+			&i.PosterUrl,
+			&i.Duration,
+			&i.ExternalAssetID,
+			&i.Rating,
+			&i.Descriptors,
+			&i.SeasonNumber,
+			&i.EpisodeNumber,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listSeasons = `-- name: ListSeasons :many
-SELECT id, name FROM seasons
-ORDER BY name
+SELECT id, title, description, long_description, small_cover_url, cover_url, title_url, poster_url, season_number, episode_count FROM seasons
+ORDER BY title
 `
 
 func (q *Queries) ListSeasons(ctx context.Context) ([]Season, error) {
@@ -111,7 +479,56 @@ func (q *Queries) ListSeasons(ctx context.Context) ([]Season, error) {
 	var items []Season
 	for rows.Next() {
 		var i Season
-		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.LongDescription,
+			&i.SmallCoverUrl,
+			&i.CoverUrl,
+			&i.TitleUrl,
+			&i.PosterUrl,
+			&i.SeasonNumber,
+			&i.EpisodeCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSeries = `-- name: ListSeries :many
+SELECT id, title, description, long_description, small_cover_url, cover_url, title_url, poster_url, logo_url FROM series
+ORDER BY title
+`
+
+func (q *Queries) ListSeries(ctx context.Context) ([]Series, error) {
+	rows, err := q.db.QueryContext(ctx, listSeries)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Series
+	for rows.Next() {
+		var i Series
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.LongDescription,
+			&i.SmallCoverUrl,
+			&i.CoverUrl,
+			&i.TitleUrl,
+			&i.PosterUrl,
+			&i.LogoUrl,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -126,7 +543,7 @@ func (q *Queries) ListSeasons(ctx context.Context) ([]Season, error) {
 }
 
 const listTokens = `-- name: ListTokens :many
-SELECT id, value FROM tokens
+SELECT id, value, expires_at FROM tokens
 ORDER BY id
 `
 
@@ -139,7 +556,7 @@ func (q *Queries) ListTokens(ctx context.Context) ([]Token, error) {
 	var items []Token
 	for rows.Next() {
 		var i Token
-		if err := rows.Scan(&i.ID, &i.Value); err != nil {
+		if err := rows.Scan(&i.ID, &i.Value, &i.ExpiresAt); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -155,16 +572,17 @@ func (q *Queries) ListTokens(ctx context.Context) ([]Token, error) {
 
 const updateToken = `-- name: UpdateToken :exec
 UPDATE tokens
-set value = ?
+set value = ?, expires_at = ?
 WHERE id = ?
 `
 
 type UpdateTokenParams struct {
-	Value string
-	ID    string
+	Value     string
+	ExpiresAt sql.NullInt64
+	ID        string
 }
 
 func (q *Queries) UpdateToken(ctx context.Context, arg UpdateTokenParams) error {
-	_, err := q.db.ExecContext(ctx, updateToken, arg.Value, arg.ID)
+	_, err := q.db.ExecContext(ctx, updateToken, arg.Value, arg.ExpiresAt, arg.ID)
 	return err
 }

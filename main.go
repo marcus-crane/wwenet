@@ -36,6 +36,54 @@ func main() {
 		},
 		Commands: []*cli.Command{
 			{
+				Name:  "cache",
+				Usage: "cache metadata for series, seasons and episodes",
+				Commands: []*cli.Command{
+					{
+						Name:  "series",
+						Usage: "cache metadata for all seasons and episodes that make up a series",
+						Flags: []cli.Flag{
+							&cli.IntFlag{
+								Name:     "id",
+								Usage:    "series id to cache",
+								Required: true,
+							},
+						},
+						Action: func(ctx context.Context, ucmd *cli.Command) error {
+							return cmd.CacheSeries(ctx, ucmd, cfg, store)
+						},
+					},
+					{
+						Name:  "season",
+						Usage: "cache metadata for all seasons and episodes that make up a season",
+						Flags: []cli.Flag{
+							&cli.IntFlag{
+								Name:     "id",
+								Usage:    "season id to cache",
+								Required: true,
+							},
+						},
+						Action: func(ctx context.Context, ucmd *cli.Command) error {
+							return cmd.CacheSeason(ctx, ucmd, cfg, store)
+						},
+					},
+					{
+						Name:  "episode",
+						Usage: "cache metadata for all seasons and episodes that make up a episode",
+						Flags: []cli.Flag{
+							&cli.IntFlag{
+								Name:     "id",
+								Usage:    "episode id to cache",
+								Required: true,
+							},
+						},
+						Action: func(ctx context.Context, ucmd *cli.Command) error {
+							return cmd.CacheEpisode(ctx, ucmd, cfg, store)
+						},
+					},
+				},
+			},
+			{
 				Name:  "video",
 				Usage: "retrieve a single video",
 				Action: func(ctx context.Context, ucmd *cli.Command) error {
@@ -43,10 +91,10 @@ func main() {
 				},
 			},
 			{
-				Name:  "season",
-				Usage: "retrieve an entire season of videos",
+				Name:  "config",
+				Usage: "output config",
 				Action: func(ctx context.Context, ucmd *cli.Command) error {
-					return cmd.Season(ctx, ucmd, cfg, store)
+					return cmd.OutputConfig(ctx, ucmd, cfg, store)
 				},
 			},
 		},

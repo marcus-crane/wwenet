@@ -1,4 +1,11 @@
 [credentials]
-apikey = "00000000-0000-0000-0000-000000000000"
 username = "user@example.com"
 password = "secretpassword123"
+
+[download]
+storage_directory = "output"
+
+[network]
+x_app_var = "6.57.11.d154ea9"
+x_api_key = "857a1e5d-e35e-4fdf-805b-a87b6f8364bf"
+user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0"
