@@ -11,6 +11,7 @@ type Episode struct {
 	Duration           int                `json:"duration"`
 	ExternalAssetId    string             `json:"externalAssetId"`
 	Favorite           bool               `json:"favourite"`
+	Rating             Rating             `json:"rating"`
 	EpisodeInformation EpisodeInformation `json:"episodeInformation"` // When embedded in season payload
 	PlayerUrlCallback  string             `json:"playerUrlCallback"`
 	OnlinePlayback     string             `json:"onlinePlayback"`

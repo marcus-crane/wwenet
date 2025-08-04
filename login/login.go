@@ -138,7 +138,7 @@ func GetAuthToken(ctx context.Context, cfg config.Config, db *storage.Queries) (
 		fmt.Println("Access token is missing or expired")
 
 		if err == nil {
-			if refreshed, refreshErr := tryRefreshToken(ctx, cfg, db); refreshErr != nil {
+			if refreshed, refreshErr := tryRefreshToken(ctx, cfg, db); refreshErr == nil {
 				fmt.Println("Successfully refreshed token")
 				return refreshed, nil
 			}

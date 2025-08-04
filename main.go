@@ -40,6 +40,20 @@ func main() {
 				Usage: "cache metadata for series, seasons and episodes",
 				Commands: []*cli.Command{
 					{
+						Name:  "playlist",
+						Usage: "cache metadata for all seasons and episodes that make up a playlist",
+						Flags: []cli.Flag{
+							&cli.IntFlag{
+								Name:     "id",
+								Usage:    "playlist id to cache",
+								Required: true,
+							},
+						},
+						Action: func(ctx context.Context, ucmd *cli.Command) error {
+							return cmd.CachePlaylist(ctx, ucmd, cfg, store)
+						},
+					},
+					{
 						Name:  "series",
 						Usage: "cache metadata for all seasons and episodes that make up a series",
 						Flags: []cli.Flag{
