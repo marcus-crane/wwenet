@@ -98,6 +98,26 @@ func main() {
 				},
 			},
 			{
+				Name:  "download",
+				Usage: "download video content for offline usage",
+				Commands: []*cli.Command{
+					{
+						Name:  "episode",
+						Usage: "download a single episode",
+						Flags: []cli.Flag{
+							&cli.IntFlag{
+								Name:     "id",
+								Usage:    "episode id to download",
+								Required: true,
+							},
+						},
+						Action: func(ctx context.Context, ucmd *cli.Command) error {
+							return cmd.DownloadEpisode(ctx, ucmd, cfg, store)
+						},
+					},
+				},
+			},
+			{
 				Name:  "config",
 				Usage: "output config",
 				Action: func(ctx context.Context, ucmd *cli.Command) error {
