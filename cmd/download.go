@@ -22,3 +22,27 @@ func DownloadEpisode(ctx context.Context, cmd *cli.Command, cfg config.Config, d
 
 	return dl.DownloadEpisode(ctx, int64(cmd.Int("id")))
 }
+
+func DownloadSeason(ctx context.Context, cmd *cli.Command, cfg config.Config, db *storage.Queries) error {
+	token, err := login.GetAuthToken(ctx, cfg, db)
+	if err != nil {
+		return err
+	}
+
+	client := api.NewClient(token, cfg)
+	dl := downloader.New(client, cfg, db)
+
+	return dl.DownloadSeason(ctx, int64(cmd.Int("id")))
+}
+
+func DownloadSeries(ctx context.Context, cmd *cli.Command, cfg config.Config, db *storage.Queries) error {
+	token, err := login.GetAuthToken(ctx, cfg, db)
+	if err != nil {
+		return err
+	}
+
+	client := api.NewClient(token, cfg)
+	dl := downloader.New(client, cfg, db)
+
+	return dl.DownloadSeries(ctx, int64(cmd.Int("id")))
+}

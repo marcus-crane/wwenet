@@ -211,3 +211,26 @@ func (d *Downloader) DownloadSeason(ctx context.Context, seasonID int64) error {
 
 	return nil
 }
+
+func (d *Downloader) DownloadSeries(ctx context.Context, seriesID int64) error {
+	series, err := d.db.GetSeries(ctx, seriesID)
+	if err != nil {
+		return fmt.Errorf("series %d not found in cache. Run 'wwenet cache series --id %d' first", seriesID, seriesID)
+	}
+
+	fmt.Printf("Downloading series: %s\n", series.Title)
+
+	seasons, err := d.db.ListSeasons(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to list seasons: %w", err)
+	}
+
+	for _, season := range seasons {
+		if err := d.DownloadSeason(ctx, season.ID); err != nil {
+			fmt.Printf("Failed to download season %d: %v\n", season.ID, err)
+			continue
+		}
+	}
+
+	return nil
+}

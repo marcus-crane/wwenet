@@ -115,6 +115,34 @@ func main() {
 							return cmd.DownloadEpisode(ctx, ucmd, cfg, store)
 						},
 					},
+					{
+						Name:  "season",
+						Usage: "download all episodes in a season",
+						Flags: []cli.Flag{
+							&cli.IntFlag{
+								Name:     "id",
+								Usage:    "season id to download",
+								Required: true,
+							},
+						},
+						Action: func(ctx context.Context, ucmd *cli.Command) error {
+							return cmd.DownloadSeason(ctx, ucmd, cfg, store)
+						},
+					},
+					{
+						Name:  "series",
+						Usage: "download all episodes in a series",
+						Flags: []cli.Flag{
+							&cli.IntFlag{
+								Name:     "id",
+								Usage:    "series id to download",
+								Required: true,
+							},
+						},
+						Action: func(ctx context.Context, ucmd *cli.Command) error {
+							return cmd.DownloadSeries(ctx, ucmd, cfg, store)
+						},
+					},
 				},
 			},
 			{
