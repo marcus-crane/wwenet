@@ -20,7 +20,11 @@ func DownloadEpisode(ctx context.Context, cmd *cli.Command, cfg config.Config, d
 	client := api.NewClient(token, cfg)
 	dl := downloader.New(client, cfg, db)
 
-	return dl.DownloadEpisode(ctx, int64(cmd.Int("id")))
+	opts := downloader.DownloadOptions{
+		Quality: cmd.String("quality"),
+	}
+
+	return dl.DownloadEpisode(ctx, int64(cmd.Int("id")), opts)
 }
 
 func DownloadSeason(ctx context.Context, cmd *cli.Command, cfg config.Config, db *storage.Queries) error {
@@ -32,7 +36,11 @@ func DownloadSeason(ctx context.Context, cmd *cli.Command, cfg config.Config, db
 	client := api.NewClient(token, cfg)
 	dl := downloader.New(client, cfg, db)
 
-	return dl.DownloadSeason(ctx, int64(cmd.Int("id")))
+	opts := downloader.DownloadOptions{
+		Quality: cmd.String("quality"),
+	}
+
+	return dl.DownloadSeason(ctx, int64(cmd.Int("id")), opts)
 }
 
 func DownloadSeries(ctx context.Context, cmd *cli.Command, cfg config.Config, db *storage.Queries) error {
@@ -44,5 +52,9 @@ func DownloadSeries(ctx context.Context, cmd *cli.Command, cfg config.Config, db
 	client := api.NewClient(token, cfg)
 	dl := downloader.New(client, cfg, db)
 
-	return dl.DownloadSeries(ctx, int64(cmd.Int("id")))
+	opts := downloader.DownloadOptions{
+		Quality: cmd.String("quality"),
+	}
+
+	return dl.DownloadSeries(ctx, int64(cmd.Int("id")), opts)
 }
