@@ -112,7 +112,7 @@ func main() {
 							},
 							&cli.StringFlag{
 								Name:  "quality",
-								Usage: "video quality (best, worst, 1080p, 720p, 480p, 360p)",
+								Usage: "video quality (1080p, 720p, 480p, 360p, 240p)",
 								Value: "best",
 							},
 						},
@@ -131,7 +131,7 @@ func main() {
 							},
 							&cli.StringFlag{
 								Name:  "quality",
-								Usage: "video quality (best, worst, 1080p, 720p, 480p, 360p)",
+								Usage: "video quality (1080p, 720p, 480p, 360p, 240p)",
 								Value: "best",
 							},
 						},
@@ -150,7 +150,7 @@ func main() {
 							},
 							&cli.StringFlag{
 								Name:  "quality",
-								Usage: "video quality (best, worst, 1080p, 720p, 480p, 360p)",
+								Usage: "video quality (1080p, 720p, 480p, 360p, 240p)",
 								Value: "best",
 							},
 						},
