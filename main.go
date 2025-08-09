@@ -115,11 +115,6 @@ func main() {
 								Usage: "video quality (best, worst, 1080p, 720p, 480p, 360p)",
 								Value: "best",
 							},
-							&cli.StringFlag{
-								Name:  "language",
-								Usage: "audio language (eng, spa, fra, deu, etc.)",
-								Value: "eng",
-							},
 						},
 						Action: func(ctx context.Context, ucmd *cli.Command) error {
 							return cmd.DownloadEpisode(ctx, ucmd, cfg, store)
@@ -139,11 +134,6 @@ func main() {
 								Usage: "video quality (best, worst, 1080p, 720p, 480p, 360p)",
 								Value: "best",
 							},
-							&cli.StringFlag{
-								Name:  "language",
-								Usage: "audio language (eng, spa, fra, deu, etc.)",
-								Value: "eng",
-							},
 						},
 						Action: func(ctx context.Context, ucmd *cli.Command) error {
 							return cmd.DownloadSeason(ctx, ucmd, cfg, store)
@@ -162,11 +152,6 @@ func main() {
 								Name:  "quality",
 								Usage: "video quality (best, worst, 1080p, 720p, 480p, 360p)",
 								Value: "best",
-							},
-							&cli.StringFlag{
-								Name:  "language",
-								Usage: "audio language (eng, spa, fra, deu, etc.)",
-								Value: "eng",
 							},
 						},
 						Action: func(ctx context.Context, ucmd *cli.Command) error {
