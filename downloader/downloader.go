@@ -363,3 +363,29 @@ func (d *Downloader) DownloadSeries(ctx context.Context, seriesID int64, opts Do
 
 	return nil
 }
+
+func (d *Downloader) DownloadPlaylist(ctx context.Context, playlistID int64, opts DownloadOptions) error {
+	playlist, err := d.db.GetPlaylist(ctx, playlistID)
+	if err != nil {
+		return fmt.Errorf("playlist %d not found in cache. Run 'wwenet cache playlist --id %d' first", playlistID, playlistID)
+	}
+
+	fmt.Printf("Downloading playlist: %s\n", playlist.Title)
+
+	episodes, err := d.db.GetEpisodesByPlaylist(ctx, sql.NullInt64{Int64: playlistID, Valid: true})
+	if err != nil {
+		return fmt.Errorf("failed to list episodes: %w", err)
+	}
+
+	if len(episodes) == 0 {
+		return fmt.Errorf("no episodes found for playlist %s", playlist.Title)
+	}
+
+	for _, ep := range episodes {
+		if err := d.DownloadEpisode(ctx, ep.ID, opts); err != nil {
+			fmt.Printf("failed to download episode %d: %v\n", ep.ID, err)
+		}
+	}
+
+	return nil
+}

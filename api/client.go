@@ -173,3 +173,59 @@ func (c *Client) getSeriesPartial(ctx context.Context, seriesID int64, lastSeen 
 
 	return &series, nil
 }
+
+func (c *Client) GetPlaylist(ctx context.Context, playlistID int64) (*networkentities.Playlist, error) {
+	basePlaylist, err := c.getPlaylistPartial(ctx, playlistID, 0)
+	if err != nil {
+		return &networkentities.Playlist{}, fmt.Errorf("failed to fetch initial payload for playlist ID %d: %w", playlistID, err)
+	}
+	pagesRemaining := basePlaylist.Paging.MoreDataAvailable
+	lastSeen := int64(basePlaylist.Paging.LastSeen)
+
+	for pagesRemaining {
+		nextPlaylistPartial, err := c.getPlaylistPartial(ctx, playlistID, lastSeen)
+		if err != nil {
+			return &networkentities.Playlist{}, fmt.Errorf("failed to fetch payload for playlist %s offset %d: %w", basePlaylist.Title, lastSeen, err)
+		}
+		basePlaylist.VODs = append(basePlaylist.VODs, nextPlaylistPartial.VODs...)
+		pagesRemaining = nextPlaylistPartial.Paging.MoreDataAvailable
+		lastSeen = int64(nextPlaylistPartial.Paging.LastSeen)
+	}
+
+	return basePlaylist, nil
+}
+
+func (c *Client) getPlaylistPartial(ctx context.Context, playlistID int64, lastSeen int64) (*networkentities.Playlist, error) {
+	url := fmt.Sprintf("%s/v4/playlist/%d", c.baseURL, playlistID)
+	if lastSeen > 0 {
+		url += fmt.Sprintf("?lastSeen=%d", lastSeen)
+	}
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.token))
+	req.Header.Add("Realm", "dce.wwe")
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("x-api-key", c.config.Network.XApiKey)
+	req.Header.Add("x-app-var", c.config.Network.XAppVar)
+	req.Header.Add("User-Agent", c.config.Network.UserAgent)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		return &networkentities.Playlist{}, fmt.Errorf("failed to read playlist info. got status code %d", resp.StatusCode)
+	}
+
+	var playlist networkentities.Playlist
+	if err := json.NewDecoder(resp.Body).Decode(&playlist); err != nil {
+		return nil, fmt.Errorf("failed to decode playlist: %w", err)
+	}
+
+	return &playlist, nil
+}

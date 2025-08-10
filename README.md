@@ -8,6 +8,19 @@ I already pay for Netflix on top of the WWE Network but I don't want to watch ev
 
 Some of the content on the WWE Network is also not legally available in many countries, while still not being available on Netflix either.
 
+## Usage
+
+Currently, `wwenet` supports downloading series, seasons and episodes, with playlist support coming shortly.
+
+Here are some basic usage examples:
+
+```console
+wwenet download series --id <id>
+wwenet download season --id <id>
+wwenet download episode --id <id>
+wwenet download playlist --id <id>
+```
+
 ## Network
 
 Minimum headers:
@@ -48,3 +61,9 @@ task migrate:create -- <name>
 ```
 
 Creates `migrations/<timestamp>_<name>.sql`
+
+#### Generating sqlc Go code
+
+```console
+task sqlgen
+```

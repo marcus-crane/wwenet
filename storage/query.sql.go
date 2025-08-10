@@ -10,6 +10,21 @@ import (
 	"database/sql"
 )
 
+const addEpisodeToPlaylist = `-- name: AddEpisodeToPlaylist :exec
+INSERT OR IGNORE INTO playlist_episodes (playlist_id, episode_id)
+VALUES (?, ?)
+`
+
+type AddEpisodeToPlaylistParams struct {
+	PlaylistID sql.NullInt64
+	EpisodeID  sql.NullInt64
+}
+
+func (q *Queries) AddEpisodeToPlaylist(ctx context.Context, arg AddEpisodeToPlaylistParams) error {
+	_, err := q.db.ExecContext(ctx, addEpisodeToPlaylist, arg.PlaylistID, arg.EpisodeID)
+	return err
+}
+
 const createDownload = `-- name: CreateDownload :one
 INSERT INTO downloads (
     episode_id,
@@ -36,7 +51,7 @@ func (q *Queries) CreateDownload(ctx context.Context, arg CreateDownloadParams) 
 
 const createEpisode = `-- name: CreateEpisode :one
 INSERT INTO episodes (
-    id, 
+    id,
     title,
     description,
     cover_url,
@@ -47,11 +62,12 @@ INSERT INTO episodes (
     rating,
     descriptors,
     season_number,
-    episode_number
+    episode_number,
+    season_id
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 )
-RETURNING id, title, description, cover_url, thumbnail_url, poster_url, duration, external_asset_id, rating, descriptors, season_number, episode_number
+RETURNING id, title, description, cover_url, thumbnail_url, poster_url, duration, external_asset_id, rating, descriptors, season_number, episode_number, season_id
 `
 
 type CreateEpisodeParams struct {
@@ -67,6 +83,7 @@ type CreateEpisodeParams struct {
 	Descriptors     sql.NullString
 	SeasonNumber    sql.NullInt64
 	EpisodeNumber   sql.NullInt64
+	SeasonID        sql.NullInt64
 }
 
 func (q *Queries) CreateEpisode(ctx context.Context, arg CreateEpisodeParams) (Episode, error) {
@@ -83,6 +100,7 @@ func (q *Queries) CreateEpisode(ctx context.Context, arg CreateEpisodeParams) (E
 		arg.Descriptors,
 		arg.SeasonNumber,
 		arg.EpisodeNumber,
+		arg.SeasonID,
 	)
 	var i Episode
 	err := row.Scan(
@@ -98,6 +116,51 @@ func (q *Queries) CreateEpisode(ctx context.Context, arg CreateEpisodeParams) (E
 		&i.Descriptors,
 		&i.SeasonNumber,
 		&i.EpisodeNumber,
+		&i.SeasonID,
+	)
+	return i, err
+}
+
+const createPlaylist = `-- name: CreatePlaylist :one
+INSERT INTO playlists (
+    id, 
+    title,
+    description,
+    small_cover_url,
+    cover_url,
+    playlist_type
+) VALUES (
+    ?, ?, ?, ?, ?, ?
+)
+RETURNING id, title, description, small_cover_url, cover_url, playlist_type
+`
+
+type CreatePlaylistParams struct {
+	ID            int64
+	Title         string
+	Description   sql.NullString
+	SmallCoverUrl sql.NullString
+	CoverUrl      sql.NullString
+	PlaylistType  sql.NullString
+}
+
+func (q *Queries) CreatePlaylist(ctx context.Context, arg CreatePlaylistParams) (Playlist, error) {
+	row := q.db.QueryRowContext(ctx, createPlaylist,
+		arg.ID,
+		arg.Title,
+		arg.Description,
+		arg.SmallCoverUrl,
+		arg.CoverUrl,
+		arg.PlaylistType,
+	)
+	var i Playlist
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.SmallCoverUrl,
+		&i.CoverUrl,
+		&i.PlaylistType,
 	)
 	return i, err
 }
@@ -113,11 +176,12 @@ INSERT INTO seasons (
     title_url,
     poster_url,
     season_number,
-    episode_count
+    episode_count,
+    series_id
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 )
-RETURNING id, title, description, long_description, small_cover_url, cover_url, title_url, poster_url, season_number, episode_count
+RETURNING id, title, description, long_description, small_cover_url, cover_url, title_url, poster_url, season_number, episode_count, series_id
 `
 
 type CreateSeasonParams struct {
@@ -131,6 +195,7 @@ type CreateSeasonParams struct {
 	PosterUrl       sql.NullString
 	SeasonNumber    sql.NullInt64
 	EpisodeCount    sql.NullInt64
+	SeriesID        sql.NullInt64
 }
 
 func (q *Queries) CreateSeason(ctx context.Context, arg CreateSeasonParams) (Season, error) {
@@ -145,6 +210,7 @@ func (q *Queries) CreateSeason(ctx context.Context, arg CreateSeasonParams) (Sea
 		arg.PosterUrl,
 		arg.SeasonNumber,
 		arg.EpisodeCount,
+		arg.SeriesID,
 	)
 	var i Season
 	err := row.Scan(
@@ -158,6 +224,7 @@ func (q *Queries) CreateSeason(ctx context.Context, arg CreateSeasonParams) (Sea
 		&i.PosterUrl,
 		&i.SeasonNumber,
 		&i.EpisodeCount,
+		&i.SeriesID,
 	)
 	return i, err
 }
@@ -262,6 +329,16 @@ func (q *Queries) DeleteEpisode(ctx context.Context, id int64) error {
 	return err
 }
 
+const deletePlaylist = `-- name: DeletePlaylist :exec
+DELETE FROM playlists
+WHERE id = ?
+`
+
+func (q *Queries) DeletePlaylist(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deletePlaylist, id)
+	return err
+}
+
 const deleteSeason = `-- name: DeleteSeason :exec
 DELETE FROM seasons
 WHERE id = ?
@@ -308,7 +385,7 @@ func (q *Queries) GetDownload(ctx context.Context, episodeID sql.NullInt64) (Dow
 
 const getEpisode = `-- name: GetEpisode :one
 
-SELECT id, title, description, cover_url, thumbnail_url, poster_url, duration, external_asset_id, rating, descriptors, season_number, episode_number FROM episodes
+SELECT id, title, description, cover_url, thumbnail_url, poster_url, duration, external_asset_id, rating, descriptors, season_number, episode_number, season_id FROM episodes
 WHERE id = ? LIMIT 1
 `
 
@@ -329,13 +406,166 @@ func (q *Queries) GetEpisode(ctx context.Context, id int64) (Episode, error) {
 		&i.Descriptors,
 		&i.SeasonNumber,
 		&i.EpisodeNumber,
+		&i.SeasonID,
+	)
+	return i, err
+}
+
+const getEpisodesByPlaylist = `-- name: GetEpisodesByPlaylist :many
+SELECT e.id, e.title, e.description, e.cover_url, e.thumbnail_url, e.poster_url, e.duration, e.external_asset_id, e.rating, e.descriptors, e.season_number, e.episode_number, e.season_id FROM episodes e
+JOIN playlist_episodes pe ON e.id = pe.episode_id
+WHERE pe.playlist_id = ?
+ORDER BY e.id
+`
+
+func (q *Queries) GetEpisodesByPlaylist(ctx context.Context, playlistID sql.NullInt64) ([]Episode, error) {
+	rows, err := q.db.QueryContext(ctx, getEpisodesByPlaylist, playlistID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Episode
+	for rows.Next() {
+		var i Episode
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.CoverUrl,
+			&i.ThumbnailUrl,
+			&i.PosterUrl,
+			&i.Duration,
+			&i.ExternalAssetID,
+			&i.Rating,
+			&i.Descriptors,
+			&i.SeasonNumber,
+			&i.EpisodeNumber,
+			&i.SeasonID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getEpisodesBySeason = `-- name: GetEpisodesBySeason :many
+SELECT id, title, description, cover_url, thumbnail_url, poster_url, duration, external_asset_id, rating, descriptors, season_number, episode_number, season_id FROM episodes
+WHERE season_id = ?
+ORDER BY episode_number
+`
+
+func (q *Queries) GetEpisodesBySeason(ctx context.Context, seasonID sql.NullInt64) ([]Episode, error) {
+	rows, err := q.db.QueryContext(ctx, getEpisodesBySeason, seasonID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Episode
+	for rows.Next() {
+		var i Episode
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.CoverUrl,
+			&i.ThumbnailUrl,
+			&i.PosterUrl,
+			&i.Duration,
+			&i.ExternalAssetID,
+			&i.Rating,
+			&i.Descriptors,
+			&i.SeasonNumber,
+			&i.EpisodeNumber,
+			&i.SeasonID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getEpisodesBySeries = `-- name: GetEpisodesBySeries :many
+SELECT e.id, e.title, e.description, e.cover_url, e.thumbnail_url, e.poster_url, e.duration, e.external_asset_id, e.rating, e.descriptors, e.season_number, e.episode_number, e.season_id FROM episodes e
+JOIN seasons s ON e.season_id = s.id
+WHERE s.series_id = ?
+ORDER BY s.season_number, e.episode_number
+`
+
+func (q *Queries) GetEpisodesBySeries(ctx context.Context, seriesID sql.NullInt64) ([]Episode, error) {
+	rows, err := q.db.QueryContext(ctx, getEpisodesBySeries, seriesID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Episode
+	for rows.Next() {
+		var i Episode
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.CoverUrl,
+			&i.ThumbnailUrl,
+			&i.PosterUrl,
+			&i.Duration,
+			&i.ExternalAssetID,
+			&i.Rating,
+			&i.Descriptors,
+			&i.SeasonNumber,
+			&i.EpisodeNumber,
+			&i.SeasonID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPlaylist = `-- name: GetPlaylist :one
+
+SELECT id, title, description, small_cover_url, cover_url, playlist_type FROM playlists
+WHERE id = ? LIMIT 1
+`
+
+// -- PLAYLIST ----
+func (q *Queries) GetPlaylist(ctx context.Context, id int64) (Playlist, error) {
+	row := q.db.QueryRowContext(ctx, getPlaylist, id)
+	var i Playlist
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.SmallCoverUrl,
+		&i.CoverUrl,
+		&i.PlaylistType,
 	)
 	return i, err
 }
 
 const getSeason = `-- name: GetSeason :one
 
-SELECT id, title, description, long_description, small_cover_url, cover_url, title_url, poster_url, season_number, episode_count FROM seasons
+SELECT id, title, description, long_description, small_cover_url, cover_url, title_url, poster_url, season_number, episode_count, series_id FROM seasons
 WHERE id = ? LIMIT 1
 `
 
@@ -354,8 +584,50 @@ func (q *Queries) GetSeason(ctx context.Context, id int64) (Season, error) {
 		&i.PosterUrl,
 		&i.SeasonNumber,
 		&i.EpisodeCount,
+		&i.SeriesID,
 	)
 	return i, err
+}
+
+const getSeasonsBySeries = `-- name: GetSeasonsBySeries :many
+SELECT id, title, description, long_description, small_cover_url, cover_url, title_url, poster_url, season_number, episode_count, series_id FROM seasons
+WHERE series_id = ?
+ORDER BY season_number
+`
+
+func (q *Queries) GetSeasonsBySeries(ctx context.Context, seriesID sql.NullInt64) ([]Season, error) {
+	rows, err := q.db.QueryContext(ctx, getSeasonsBySeries, seriesID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Season
+	for rows.Next() {
+		var i Season
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.LongDescription,
+			&i.SmallCoverUrl,
+			&i.CoverUrl,
+			&i.TitleUrl,
+			&i.PosterUrl,
+			&i.SeasonNumber,
+			&i.EpisodeCount,
+			&i.SeriesID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getSeries = `-- name: GetSeries :one
@@ -425,7 +697,7 @@ func (q *Queries) ListDownloads(ctx context.Context) ([]Download, error) {
 }
 
 const listEpisodes = `-- name: ListEpisodes :many
-SELECT id, title, description, cover_url, thumbnail_url, poster_url, duration, external_asset_id, rating, descriptors, season_number, episode_number FROM episodes
+SELECT id, title, description, cover_url, thumbnail_url, poster_url, duration, external_asset_id, rating, descriptors, season_number, episode_number, season_id FROM episodes
 ORDER BY title
 `
 
@@ -451,6 +723,42 @@ func (q *Queries) ListEpisodes(ctx context.Context) ([]Episode, error) {
 			&i.Descriptors,
 			&i.SeasonNumber,
 			&i.EpisodeNumber,
+			&i.SeasonID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPlaylists = `-- name: ListPlaylists :many
+SELECT id, title, description, small_cover_url, cover_url, playlist_type FROM playlists
+ORDER BY title
+`
+
+func (q *Queries) ListPlaylists(ctx context.Context) ([]Playlist, error) {
+	rows, err := q.db.QueryContext(ctx, listPlaylists)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Playlist
+	for rows.Next() {
+		var i Playlist
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.SmallCoverUrl,
+			&i.CoverUrl,
+			&i.PlaylistType,
 		); err != nil {
 			return nil, err
 		}
@@ -466,7 +774,7 @@ func (q *Queries) ListEpisodes(ctx context.Context) ([]Episode, error) {
 }
 
 const listSeasons = `-- name: ListSeasons :many
-SELECT id, title, description, long_description, small_cover_url, cover_url, title_url, poster_url, season_number, episode_count FROM seasons
+SELECT id, title, description, long_description, small_cover_url, cover_url, title_url, poster_url, season_number, episode_count, series_id FROM seasons
 ORDER BY title
 `
 
@@ -490,6 +798,7 @@ func (q *Queries) ListSeasons(ctx context.Context) ([]Season, error) {
 			&i.PosterUrl,
 			&i.SeasonNumber,
 			&i.EpisodeCount,
+			&i.SeriesID,
 		); err != nil {
 			return nil, err
 		}

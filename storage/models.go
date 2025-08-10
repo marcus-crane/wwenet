@@ -27,6 +27,21 @@ type Episode struct {
 	Descriptors     sql.NullString
 	SeasonNumber    sql.NullInt64
 	EpisodeNumber   sql.NullInt64
+	SeasonID        sql.NullInt64
+}
+
+type Playlist struct {
+	ID            int64
+	Title         string
+	Description   sql.NullString
+	SmallCoverUrl sql.NullString
+	CoverUrl      sql.NullString
+	PlaylistType  sql.NullString
+}
+
+type PlaylistEpisode struct {
+	PlaylistID sql.NullInt64
+	EpisodeID  sql.NullInt64
 }
 
 type Season struct {
@@ -40,6 +55,7 @@ type Season struct {
 	PosterUrl       sql.NullString
 	SeasonNumber    sql.NullInt64
 	EpisodeCount    sql.NullInt64
+	SeriesID        sql.NullInt64
 }
 
 type Series struct {

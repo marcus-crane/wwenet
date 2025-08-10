@@ -1,21 +1,16 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE seasons (
+CREATE TABLE playlists (
     id INTEGER PRIMARY KEY,
     title TEXT NOT NULL,
     description TEXT,
-    long_description TEXT,
     small_cover_url TEXT,
     cover_url TEXT,
-    title_url TEXT,
-    poster_url TEXT,
-    season_number INTEGER,
-    episode_count INTEGER,
-    series_id INTEGER REFERENCES series(id)
+    playlist_type TEXT
 );
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE seasons;
+DROP TABLE playlists;
 -- +goose StatementEnd

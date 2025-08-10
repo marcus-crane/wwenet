@@ -58,3 +58,19 @@ func DownloadSeries(ctx context.Context, cmd *cli.Command, cfg config.Config, db
 
 	return dl.DownloadSeries(ctx, int64(cmd.Int("id")), opts)
 }
+
+func DownloadPlaylist(ctx context.Context, cmd *cli.Command, cfg config.Config, db *storage.Queries) error {
+	token, err := login.GetAuthToken(ctx, cfg, db)
+	if err != nil {
+		return err
+	}
+
+	client := api.NewClient(token, cfg)
+	dl := downloader.New(client, cfg, db)
+
+	opts := downloader.DownloadOptions{
+		Quality: cmd.String("quality"),
+	}
+
+	return dl.DownloadPlaylist(ctx, int64(cmd.Int("id")), opts)
+}

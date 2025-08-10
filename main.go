@@ -113,7 +113,7 @@ func main() {
 							&cli.StringFlag{
 								Name:  "quality",
 								Usage: "video quality (1080p, 720p, 480p, 360p, 240p)",
-								Value: "best",
+								Value: "1080p",
 							},
 						},
 						Action: func(ctx context.Context, ucmd *cli.Command) error {
@@ -132,7 +132,7 @@ func main() {
 							&cli.StringFlag{
 								Name:  "quality",
 								Usage: "video quality (1080p, 720p, 480p, 360p, 240p)",
-								Value: "best",
+								Value: "1080p",
 							},
 						},
 						Action: func(ctx context.Context, ucmd *cli.Command) error {
@@ -151,11 +151,30 @@ func main() {
 							&cli.StringFlag{
 								Name:  "quality",
 								Usage: "video quality (1080p, 720p, 480p, 360p, 240p)",
-								Value: "best",
+								Value: "1080p",
 							},
 						},
 						Action: func(ctx context.Context, ucmd *cli.Command) error {
 							return cmd.DownloadSeries(ctx, ucmd, cfg, store)
+						},
+					},
+					{
+						Name:  "playlist",
+						Usage: "download all episodes in a playlist",
+						Flags: []cli.Flag{
+							&cli.IntFlag{
+								Name:     "id",
+								Usage:    "playlist id to download",
+								Required: true,
+							},
+							&cli.StringFlag{
+								Name:  "quality",
+								Usage: "video quality (1080p, 720p, 480p, 360p, 240p)",
+								Value: "1080p",
+							},
+						},
+						Action: func(ctx context.Context, ucmd *cli.Command) error {
+							return cmd.DownloadPlaylist(ctx, ucmd, cfg, store)
 						},
 					},
 				},

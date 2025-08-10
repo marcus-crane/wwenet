@@ -12,7 +12,8 @@ CREATE TABLE episodes (
     rating TEXT,
     descriptors TEXT,
     season_number INT,
-    episode_number INT
+    episode_number INT,
+    season_id INTEGER REFERENCES seasons(id)
 );
 -- +goose StatementEnd
 

@@ -44,6 +44,7 @@ func cacheSeason(ctx context.Context, seasonID int64, cfg config.Config, db *sto
 		PosterUrl:       sqlNullString(season.PosterUrl),
 		SeasonNumber:    sqlNullInt64(int64(season.SeasonNumber)),
 		EpisodeCount:    sqlNullInt64(int64(season.EpisodeCount)),
+		SeriesID:        sqlNullInt64(int64(season.Series.SeriesId)),
 	}
 
 	_, err = db.CreateSeason(ctx, params)
