@@ -315,23 +315,16 @@ func (d *Downloader) DownloadSeason(ctx context.Context, seasonID int64, opts Do
 
 	fmt.Printf("Downloading season: %s\n", season.Title)
 
-	episodes, err := d.db.ListEpisodes(ctx)
+	episodes, err := d.db.GetEpisodesBySeason(ctx, sql.NullInt64{Int64: seasonID, Valid: true})
 	if err != nil {
 		return fmt.Errorf("failed to list episodes: %w", err)
 	}
 
-	var seasonEpisodes []storage.Episode
-	for _, ep := range episodes {
-		if ep.SeasonNumber.Valid && ep.SeasonNumber.Int64 == season.SeasonNumber.Int64 {
-			seasonEpisodes = append(seasonEpisodes, ep)
-		}
-	}
-
-	if len(seasonEpisodes) == 0 {
+	if len(episodes) == 0 {
 		return fmt.Errorf("no episodes found for season %d. Run 'wwenet cache season --id %d' first", seasonID, seasonID)
 	}
 
-	for _, ep := range seasonEpisodes {
+	for _, ep := range episodes {
 		if err := d.DownloadEpisode(ctx, ep.ID, opts); err != nil {
 			fmt.Printf("failed to download episode %d: %v\n", ep.ID, err)
 			continue
@@ -349,14 +342,14 @@ func (d *Downloader) DownloadSeries(ctx context.Context, seriesID int64, opts Do
 
 	fmt.Printf("Downloading series: %s\n", series.Title)
 
-	seasons, err := d.db.ListSeasons(ctx)
+	episodes, err := d.db.GetEpisodesBySeries(ctx, sql.NullInt64{Int64: seriesID, Valid: true})
 	if err != nil {
-		return fmt.Errorf("failed to list seasons: %w", err)
+		return fmt.Errorf("failed to get episodes for series: %w", err)
 	}
 
-	for _, season := range seasons {
-		if err := d.DownloadSeason(ctx, season.ID, opts); err != nil {
-			fmt.Printf("Failed to download season %d: %v\n", season.ID, err)
+	for _, ep := range episodes {
+		if err := d.DownloadEpisode(ctx, ep.ID, opts); err != nil {
+			fmt.Printf("Failed to download episode %d: %v\n", ep.ID, err)
 			continue
 		}
 	}
